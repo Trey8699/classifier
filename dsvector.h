@@ -2,7 +2,7 @@
 #define DSVECTOR_H
 using namespace std;
 #include<iostream>
-#include<exception>
+#include<exception
 template <class T>
 class DSVector{
 public:
