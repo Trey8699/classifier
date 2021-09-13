@@ -1,36 +1,72 @@
-# This is a basic workflow to help you get started with Actions
+name: pa01_sentiment
 
-name: CI
+on: [push]
 
-# Controls when the workflow will run
-on:
-  # Triggers the workflow on push or pull request events but only for the main branch
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+env:
+  EXE_NAME: pa01_sentiment
+  ### ***** Students!  Put the name of the input files and output files here.
+  ###   List them in the order that they need to appear in Argv param of main.
+  ###   Output Files will follow input files
+  ###   Note: These should be the actual names of the files.  No double quotes
+  # INPUT_FILES:
+  # OUTPUT_FILES:
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
+    name: Project_Building
     runs-on: ubuntu-latest
+    timeout-minutes: 4
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      - name: Checkout project repo from GitHub
+        uses: actions/checkout@v1
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: Executable name Environment Variable Check
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          echo $EXE_NAME
+          echo " "
+          echo ${{runner.workspace}}
+          echo " "
+          echo $GITHUB_WORKSPACE
+          echo " "
+          g++ --version
+          cmake --version
+      - name: Create build environment
+        #run: cmake -E make_directory ${{runner.workspace}}/build
+        run:  mkdir ${{runner.workspace}}/build
+
+      - name: Configure the build
+        # Use a bash shell so we can use the same syntax for environment variable
+        # access regardless of the host operating system
+        shell: bash
+        working-directory: ${{runner.workspace}}/build
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+
+      - name: Build the project
+        working-directory: ${{runner.workspace}}/build
+        shell: bash
+        # Execute the build.  You can specify a specific target with "--target <NAME>"
+        run: cmake --build . 
+
+      - name: Run the project
+        working-directory: ${{runner.workspace}}/build
+        shell: bash
+        run: ./$EXE_NAME $INPUT_FILES $OUTPUT_FILES
+        #        run: ./$EXE_NAME
+
+#      - name: Copy output files to artifact directory
+#        working-directory: ${{runner.workspace}}/build
+#        run: |
+#          mkdir artifacts
+#          for f in $OUTPUT_FILES
+#          do
+#            echo "  Copying $f"
+#            cp $f artifacts/
+#          done
+#
+#      - name: Upload output files to GitHub so they can be reviewed
+#        uses: actions/upload-artifact@v1
+#        with:
+#          name: project_output
+#          path: ${{runner.workspace}}/build/artifacts
